@@ -1,0 +1,49 @@
+import React, { useState } from "react";
+import { TabNavigation } from "./components/TabNavigation";
+import { HomePage } from "./pages/HomePage";
+import { LandsPage } from "./pages/LandsPage";
+import { EarnPage } from "./pages/EarnPage";
+import { ComingSoon } from "./pages/ComingSoon";
+
+const App: React.FC = () => {
+  const [activeTab, setActiveTab] = useState("home");
+
+  const renderPage = () => {
+    switch (activeTab) {
+      case "home":
+        return <HomePage onNavigate={setActiveTab} />;
+      case "lands":
+        return <LandsPage />;
+      case "earn":
+        return <EarnPage />;
+      case "gallery":
+        return (
+          <ComingSoon
+            title="Gallery"
+            description="Full NFT gallery experience coming soon"
+          />
+        );
+      case "doggverse":
+        return (
+          <ComingSoon
+            title="Doggverse 3D"
+            description="Immersive 3D metaverse experience coming soon"
+          />
+        );
+      default:
+        return <HomePage onNavigate={setActiveTab} />;
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-[#000000]">
+      {renderPage()}
+      <TabNavigation
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+      />
+    </div>
+  );
+};
+
+export default App;
