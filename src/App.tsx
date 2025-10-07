@@ -4,6 +4,7 @@ import { HomePage } from "./pages/HomePage";
 import { LandsPage } from "./pages/LandsPage";
 import { EarnPage } from "./pages/EarnPage";
 import { ComingSoon } from "./pages/ComingSoon";
+import { NotificationProvider } from "./context/NotificationContext";
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState("home");
@@ -36,13 +37,15 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#000000]">
-      {renderPage()}
-      <TabNavigation
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-      />
-    </div>
+    <NotificationProvider>
+      <div className="min-h-screen bg-[#000000]">
+        {renderPage()}
+        <TabNavigation
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+        />
+      </div>
+    </NotificationProvider>
   );
 };
 
