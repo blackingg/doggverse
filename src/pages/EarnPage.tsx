@@ -9,6 +9,8 @@ import {
   IoShareSocialSharp,
 } from "react-icons/io5";
 import { Header } from "../components/Header";
+import { NotificationStack } from "../components/Notification";
+import { useNotifications } from "../context/NotificationContext";
 import type { Mission } from "../types";
 
 export const EarnPage: React.FC = () => {
@@ -44,13 +46,23 @@ export const EarnPage: React.FC = () => {
   ]);
 
   const [balance, setBalance] = useState(500);
+  const { notifications, removeNotification, addNotification } =
+    useNotifications();
 
   const claimReward = (id: number) => {
     setMissions(
       missions.map((m) => (m.id === id ? { ...m, completed: true } : m))
     );
     const mission = missions.find((m) => m.id === id);
-    if (mission) setBalance(balance + mission.reward);
+    if (mission) {
+      setBalance(balance + mission.reward);
+      // Add success notification when reward is claimed
+      addNotification({
+        type: "success",
+        title: "Reward Claimed!",
+        description: `You earned ${mission.reward} DOGG from ${mission.title}`,
+      });
+    }
   };
 
   return (
@@ -58,6 +70,14 @@ export const EarnPage: React.FC = () => {
       <Header
         title="Earn"
         balance={balance}
+      />
+
+      {/* Notification Stack */}
+      <NotificationStack
+        notifications={notifications}
+        onRemove={removeNotification}
+        autoClose={true}
+        autoCloseDelay={10000}
       />
 
       {/* Balance Card */}
@@ -162,7 +182,16 @@ export const EarnPage: React.FC = () => {
             </div>
           </div>
 
-          <button className="w-full bg-[#0A84FF] text-white py-4 rounded-xl font-semibold active:scale-[0.98] transition-transform flex items-center justify-center gap-2">
+          <button
+            onClick={() => {
+              addNotification({
+                type: "info",
+                title: "Invite Link Copied!",
+                description: "Share with your friends to earn rewards",
+              });
+            }}
+            className="w-full bg-[#0A84FF] text-white py-4 rounded-xl font-semibold active:scale-[0.98] transition-transform flex items-center justify-center gap-2"
+          >
             <IoShareSocialSharp size={20} />
             Share Invite Link
           </button>
