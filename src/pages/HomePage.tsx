@@ -10,12 +10,13 @@ import {
   IoWaterSharp,
   IoTrendingUpSharp,
   IoBuildSharp,
-  IoClose,
   IoRocketSharp,
 } from "react-icons/io5";
 import { Header } from "../components/Header";
-import { NotificationStack } from "../components/Notification";
-import { useNotifications } from "../context/NotificationContext";
+import { ActionCard } from "../components/ActionCard";
+import { StatCard } from "../components/StatCard";
+import { SectionHeader } from "../components/SectionHeader";
+import { Modal } from "../components/Modal";
 
 export const HomePage: React.FC<{ onNavigate: (tab: string) => void }> = ({
   onNavigate,
@@ -23,7 +24,6 @@ export const HomePage: React.FC<{ onNavigate: (tab: string) => void }> = ({
   const [currentSlide, setCurrentSlide] = useState(0);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [upgradeLevel, setUpgradeLevel] = useState(0);
-  const { notifications, removeNotification } = useNotifications();
 
   const slides = [
     {
@@ -56,29 +56,94 @@ export const HomePage: React.FC<{ onNavigate: (tab: string) => void }> = ({
     },
   ];
 
+  const stats = [
+    { label: "Users", value: "100K+" },
+    { label: "Lands", value: "50K+" },
+    { label: "Events", value: "10+" },
+  ];
+
+  const quickActions = [
+    {
+      icon: IoTrendingUpSharp,
+      iconBg: "bg-[#0A84FF]/20",
+      iconColor: "text-[#0A84FF]",
+      title: "Upgrade",
+      onClick: () => setShowUpgradeModal(true),
+    },
+    {
+      icon: IoBuildSharp,
+      iconBg: "bg-green-500/20",
+      iconColor: "text-green-400",
+      title: "Build",
+      onClick: () => onNavigate("doggverse"),
+    },
+    {
+      icon: IoGlobeSharp,
+      iconBg: "bg-purple-500/20",
+      iconColor: "text-purple-400",
+      title: "Explore",
+      onClick: () => onNavigate("doggverse"),
+    },
+  ];
+
+  const collections = [
+    {
+      name: "TONVERSE",
+      icon: IoGlobeSharp,
+      color: "bg-blue-500/20",
+      textColor: "text-blue-400",
+      plots: 100,
+    },
+    {
+      name: "Notverse",
+      icon: IoStarSharp,
+      color: "bg-purple-500/20",
+      textColor: "text-purple-400",
+      plots: 150,
+    },
+    {
+      name: "Xverse",
+      icon: IoFlameSharp,
+      color: "bg-green-500/20",
+      textColor: "text-green-400",
+      plots: 200,
+    },
+  ];
+
+  const earnInviteCards = [
+    {
+      icon: IoGiftSharp,
+      iconBg: "bg-yellow-500/20",
+      iconColor: "text-yellow-400",
+      title: "Earn Rewards",
+      subtitle: "Complete missions",
+      onClick: () => onNavigate("earn"),
+    },
+    {
+      icon: IoPeopleSharp,
+      iconBg: "bg-pink-500/20",
+      iconColor: "text-pink-400",
+      title: "Invite Friends",
+      subtitle: "Earn 7% bonus",
+      onClick: () => {},
+    },
+  ];
+
+  const upgradeLevels = ["Basic", "Ocean Layer", "Premium"];
+  const upgradeCost = [100, 250, 500];
+
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % slides.length);
     }, 4000);
     return () => clearInterval(timer);
-  }, []);
-
-  const upgradeLevels = ["Basic", "Ocean Layer", "Premium"];
-  const upgradeCost = [100, 250, 500];
+  }, [slides.length]);
 
   return (
     <div className="pb-20 bg-[#000000] min-h-screen">
       <Header
         title="DoggEarth"
         balance={1200}
-      />
-
-      {/* Notification Stack */}
-      <NotificationStack
-        notifications={notifications}
-        onRemove={removeNotification}
-        autoClose={true}
-        autoCloseDelay={10000}
       />
 
       {/* Hero Section */}
@@ -117,23 +182,17 @@ export const HomePage: React.FC<{ onNavigate: (tab: string) => void }> = ({
       {/* Stats Grid */}
       <div className="px-4 mb-6">
         <div className="grid grid-cols-3 gap-3">
-          {[
-            { label: "Users", value: "100K+" },
-            { label: "Lands", value: "50K+" },
-            { label: "Events", value: "10+" },
-          ].map((stat) => (
-            <div
+          {stats.map((stat) => (
+            <StatCard
               key={stat.label}
-              className="bg-[#1c1c1e] rounded-xl p-4 text-center border border-gray-800"
-            >
-              <div className="text-2xl font-bold text-white">{stat.value}</div>
-              <div className="text-xs text-gray-400 mt-1">{stat.label}</div>
-            </div>
+              label={stat.label}
+              value={stat.value}
+            />
           ))}
         </div>
       </div>
 
-      {/* Feature Slider with Images */}
+      {/* Feature Slider */}
       <div className="px-4 mb-6">
         <div className="relative h-56 rounded-2xl overflow-hidden">
           {slides.map((slide, index) => {
@@ -184,79 +243,29 @@ export const HomePage: React.FC<{ onNavigate: (tab: string) => void }> = ({
 
       {/* Quick Actions */}
       <div className="px-4 mb-6">
-        <h3 className="text-lg font-semibold text-white mb-3">Quick Actions</h3>
+        <SectionHeader title="Quick Actions" />
         <div className="grid grid-cols-3 gap-3">
-          <button
-            onClick={() => setShowUpgradeModal(true)}
-            className="bg-[#1c1c1e] border border-gray-800 rounded-xl p-4 text-center active:scale-95 transition-transform"
-          >
-            <div className="w-10 h-10 bg-[#0A84FF]/20 rounded-xl flex items-center justify-center mx-auto mb-2">
-              <IoTrendingUpSharp
-                size={20}
-                className="text-[#0A84FF]"
-              />
-            </div>
-            <div className="text-xs font-semibold text-white">Upgrade</div>
-          </button>
-          <button
-            onClick={() => onNavigate("doggverse")}
-            className="bg-[#1c1c1e] border border-gray-800 rounded-xl p-4 text-center active:scale-95 transition-transform"
-          >
-            <div className="w-10 h-10 bg-green-500/20 rounded-xl flex items-center justify-center mx-auto mb-2">
-              <IoBuildSharp
-                size={20}
-                className="text-green-400"
-              />
-            </div>
-            <div className="text-xs font-semibold text-white">Build</div>
-          </button>
-          <button
-            onClick={() => onNavigate("doggverse")}
-            className="bg-[#1c1c1e] border border-gray-800 rounded-xl p-4 text-center active:scale-95 transition-transform"
-          >
-            <div className="w-10 h-10 bg-purple-500/20 rounded-xl flex items-center justify-center mx-auto mb-2">
-              <IoGlobeSharp
-                size={20}
-                className="text-purple-400"
-              />
-            </div>
-            <div className="text-xs font-semibold text-white">Explore</div>
-          </button>
+          {quickActions.map((action, index) => (
+            <ActionCard
+              key={index}
+              icon={action.icon}
+              iconBg={action.iconBg}
+              iconColor={action.iconColor}
+              title={action.title}
+              onClick={action.onClick}
+            />
+          ))}
         </div>
       </div>
 
       {/* Collections */}
       <div className="px-4 mb-6">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-lg font-semibold text-white">Collections</h3>
-          <button className="text-[#0A84FF] text-sm font-medium">
-            View All
-          </button>
-        </div>
+        <SectionHeader
+          title="Collections"
+          actionText="View All"
+        />
         <div className="space-y-2">
-          {[
-            {
-              name: "TONVERSE",
-              icon: IoGlobeSharp,
-              color: "bg-blue-500/20",
-              textColor: "text-blue-400",
-              plots: 100,
-            },
-            {
-              name: "Notverse",
-              icon: IoStarSharp,
-              color: "bg-purple-500/20",
-              textColor: "text-purple-400",
-              plots: 150,
-            },
-            {
-              name: "Xverse",
-              icon: IoFlameSharp,
-              color: "bg-green-500/20",
-              textColor: "text-green-400",
-              plots: 200,
-            },
-          ].map((collection) => {
+          {collections.map((collection) => {
             const Icon = collection.icon;
             return (
               <div
@@ -294,98 +303,72 @@ export const HomePage: React.FC<{ onNavigate: (tab: string) => void }> = ({
       {/* Earn & Invite */}
       <div className="px-4">
         <div className="grid grid-cols-2 gap-3">
-          <button
-            onClick={() => onNavigate("earn")}
-            className="bg-[#1c1c1e] border border-gray-800 rounded-xl p-4 text-left active:scale-[0.98] transition-transform"
-          >
-            <div className="w-10 h-10 bg-yellow-500/20 rounded-xl flex items-center justify-center mb-3">
-              <IoGiftSharp
-                size={24}
-                className="text-yellow-400"
-              />
-            </div>
-            <div className="font-semibold text-white text-sm">Earn Rewards</div>
-            <div className="text-xs text-gray-400 mt-1">Complete missions</div>
-          </button>
-          <button className="bg-[#1c1c1e] border border-gray-800 rounded-xl p-4 text-left active:scale-[0.98] transition-transform">
-            <div className="w-10 h-10 bg-pink-500/20 rounded-xl flex items-center justify-center mb-3">
-              <IoPeopleSharp
-                size={24}
-                className="text-pink-400"
-              />
-            </div>
-            <div className="font-semibold text-white text-sm">
-              Invite Friends
-            </div>
-            <div className="text-xs text-gray-400 mt-1">Earn 7% bonus</div>
-          </button>
+          {earnInviteCards.map((card, index) => (
+            <ActionCard
+              key={index}
+              icon={card.icon}
+              iconBg={card.iconBg}
+              iconColor={card.iconColor}
+              title={card.title}
+              subtitle={card.subtitle}
+              onClick={card.onClick}
+            />
+          ))}
         </div>
       </div>
 
       {/* Upgrade Modal */}
-      {showUpgradeModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
-          <div className="bg-[#1c1c1e] rounded-t-3xl sm:rounded-3xl w-full sm:max-w-md border-t border-gray-800 animate-[slideUp_0.3s_ease-out]">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-white">Upgrade Land</h3>
-                <button
-                  onClick={() => setShowUpgradeModal(false)}
-                  className="w-10 h-10 bg-[#2c2c2e] rounded-full flex items-center justify-center text-white hover:bg-[#3c3c3e] transition-colors"
-                >
-                  <IoClose size={20} />
-                </button>
-              </div>
+      <Modal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        title="Upgrade Land"
+      >
+        <div className="w-16 h-16 bg-[#0A84FF]/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
+          <IoTrendingUpSharp
+            size={32}
+            className="text-[#0A84FF]"
+          />
+        </div>
 
-              <div className="w-16 h-16 bg-[#0A84FF]/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                <IoTrendingUpSharp
-                  size={32}
-                  className="text-[#0A84FF]"
-                />
-              </div>
+        <div className="mb-6">
+          <label className="text-sm text-gray-400 mb-3 block">
+            Select Upgrade Level
+          </label>
+          <input
+            type="range"
+            min="0"
+            max="2"
+            value={upgradeLevel}
+            onChange={(e) => setUpgradeLevel(Number(e.target.value))}
+            className="w-full h-2 bg-[#2c2c2e] rounded-lg appearance-none cursor-pointer accent-[#0A84FF]"
+          />
+          <div className="flex justify-between text-xs text-gray-400 mt-2">
+            {upgradeLevels.map((level, i) => (
+              <span
+                key={i}
+                className={`transition-colors ${
+                  upgradeLevel === i ? "text-[#0A84FF] font-semibold" : ""
+                }`}
+              >
+                {level}
+              </span>
+            ))}
+          </div>
+        </div>
 
-              <div className="mb-6">
-                <label className="text-sm text-gray-400 mb-3 block">
-                  Select Upgrade Level
-                </label>
-                <input
-                  type="range"
-                  min="0"
-                  max="2"
-                  value={upgradeLevel}
-                  onChange={(e) => setUpgradeLevel(Number(e.target.value))}
-                  className="w-full h-2 bg-[#2c2c2e] rounded-lg appearance-none cursor-pointer accent-[#0A84FF]"
-                />
-                <div className="flex justify-between text-xs text-gray-400 mt-2">
-                  {upgradeLevels.map((level, i) => (
-                    <span
-                      key={i}
-                      className={`transition-colors ${
-                        upgradeLevel === i ? "text-[#0A84FF] font-semibold" : ""
-                      }`}
-                    >
-                      {level}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              <div className="bg-[#000000] rounded-2xl p-4 mb-6 border border-gray-800">
-                <div className="text-center">
-                  <div className="text-sm text-gray-400 mb-1">Upgrade Cost</div>
-                  <div className="text-3xl font-bold text-[#0A84FF]">
-                    {upgradeCost[upgradeLevel]} $DOGG
-                  </div>
-                </div>
-              </div>
-
-              <button className="w-full bg-[#0A84FF] text-white py-4 rounded-xl font-semibold active:scale-[0.98] transition-transform">
-                Confirm Upgrade
-              </button>
+        <div className="bg-[#000000] rounded-2xl p-4 mb-6 border border-gray-800">
+          <div className="text-center">
+            <div className="text-sm text-gray-400 mb-1">Upgrade Cost</div>
+            <div className="text-3xl font-bold text-[#0A84FF]">
+              {upgradeCost[upgradeLevel]} $DOGG
             </div>
           </div>
         </div>
-      )}
+
+        <button className="w-full bg-[#0A84FF] text-white py-4 rounded-xl font-semibold active:scale-[0.98] transition-transform">
+          Confirm Upgrade
+        </button>
+      </Modal>
     </div>
   );
 };
