@@ -8,16 +8,16 @@ export const Header: React.FC<{ title: string; balance?: number }> = ({
   balance,
 }) => {
   const { notifications, removeNotification } = useNotifications();
-
   return (
     <div className="sticky top-0 bg-[#000000] border-b border-gray-800 z-40">
-      <NotificationStack
-        notifications={notifications}
-        onRemove={removeNotification}
-        autoClose={true}
-        autoCloseDelay={10000}
-      />
-
+      <div className="absolute top-0 left-0 right-0 z-50">
+        <NotificationStack
+          notifications={notifications}
+          onRemove={removeNotification}
+          autoClose={true}
+          autoCloseDelay={10000}
+        />
+      </div>
       <div className="px-4 py-3">
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-semibold text-white">{title}</h1>
