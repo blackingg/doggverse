@@ -181,7 +181,7 @@ export const NotificationStack: React.FC<{
 
   return (
     <div
-      className="relative top-10 z-50"
+      className="relative top-10"
       style={{ height: `${80 + (notifications.length - 1) * 8}px` }}
     >
       {notifications.map((notif, index) => (
