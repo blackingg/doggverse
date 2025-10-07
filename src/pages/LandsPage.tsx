@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
   IoMapSharp,
-  IoClose,
   IoWalletSharp,
   IoPeopleSharp,
   IoStarSharp,
@@ -10,13 +9,57 @@ import {
   IoTrendingUpSharp,
 } from "react-icons/io5";
 import { Header } from "../components/Header";
+import { Modal } from "../components/Modal";
+import { SectionHeader } from "../components/SectionHeader";
 import type { Land } from "../types";
+
+interface NFT {
+  id: number;
+  name: string;
+  price: number;
+  icon: React.ComponentType<{ size: number; className?: string }>;
+  gradient: string;
+}
+
+type ModalType = "land" | "nft" | null;
 
 export const LandsPage: React.FC = () => {
   const [lands, setLands] = useState<Land[]>([]);
   const [selectedLand, setSelectedLand] = useState<Land | null>(null);
+  const [selectedNFT, setSelectedNFT] = useState<NFT | null>(null);
   const [filter, setFilter] = useState("all");
-  const [showBuyModal, setShowBuyModal] = useState(false);
+  const [modalType, setModalType] = useState<ModalType>(null);
+
+  const nfts: NFT[] = [
+    {
+      id: 1,
+      name: "Star Dog",
+      price: 100,
+      icon: IoStarSharp,
+      gradient: "from-purple-500 to-blue-500",
+    },
+    {
+      id: 2,
+      name: "Fire Dog",
+      price: 150,
+      icon: IoFlameSharp,
+      gradient: "from-orange-500 to-red-500",
+    },
+    {
+      id: 3,
+      name: "Gift Dog",
+      price: 200,
+      icon: IoGiftSharp,
+      gradient: "from-green-500 to-emerald-500",
+    },
+    {
+      id: 4,
+      name: "Trending Dog",
+      price: 250,
+      icon: IoTrendingUpSharp,
+      gradient: "from-cyan-500 to-blue-600",
+    },
+  ];
 
   useEffect(() => {
     const generatedLands: Land[] = [];
@@ -45,6 +88,28 @@ export const LandsPage: React.FC = () => {
   const filteredLands = lands.filter(
     (land) => filter === "all" || land.type === filter
   );
+
+  const handleLandClick = (land: Land) => {
+    setSelectedLand(land);
+    setModalType("land");
+  };
+
+  const handleNFTClick = (nft: NFT) => {
+    setSelectedNFT(nft);
+    setModalType("nft");
+  };
+
+  const closeModal = () => {
+    setModalType(null);
+    setSelectedLand(null);
+    setSelectedNFT(null);
+  };
+
+  const getModalTitle = () => {
+    if (modalType === "land") return "Land Purchase";
+    if (modalType === "nft") return "NFT Purchase";
+    return "";
+  };
 
   return (
     <div className="pb-20 bg-[#000000] min-h-screen">
@@ -83,10 +148,7 @@ export const LandsPage: React.FC = () => {
                 key={land.id}
                 className="aspect-square rounded transition-transform active:scale-95"
                 style={{ backgroundColor: getColor(land.status) }}
-                onClick={() => {
-                  setSelectedLand(land);
-                  setShowBuyModal(true);
-                }}
+                onClick={() => handleLandClick(land)}
               />
             ))}
           </div>
@@ -118,110 +180,176 @@ export const LandsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Buy Modal */}
-      {showBuyModal && selectedLand && (
-        <div className="fixed inset-0 bg-black/70 flex items-end justify-center z-50 p-0">
-          <div className="bg-[#1c1c1e] rounded-t-3xl w-full max-w-lg animate-[slideUp_0.3s_ease-out] border-t border-gray-800">
-            <div className="p-6">
-              <div className="w-12 h-1 bg-gray-700 rounded-full mx-auto mb-6" />
+      <Modal
+        isOpen={modalType !== null}
+        onClose={closeModal}
+        title={getModalTitle()}
+      >
+        {modalType === "land" && selectedLand && (
+          <>
+            <div className="w-16 h-16 bg-[#0A84FF]/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <IoMapSharp
+                size={32}
+                className="text-[#0A84FF]"
+              />
+            </div>
 
-              <div className="text-center mb-6">
-                <div className="w-16 h-16 bg-[#0A84FF]/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <IoMapSharp
-                    size={32}
-                    className="text-[#0A84FF]"
-                  />
-                </div>
-                <h3 className="text-2xl font-bold text-white mb-1">
-                  Land #{selectedLand.id}
-                </h3>
-                <div className="text-sm text-gray-400">{selectedLand.type}</div>
+            <div className="text-center mb-6">
+              <h3 className="text-2xl font-bold text-white mb-1">
+                Land #{selectedLand.id}
+              </h3>
+              <div className="text-sm text-gray-400">{selectedLand.type}</div>
+            </div>
+
+            <div className="bg-[#000000] rounded-2xl p-4 mb-6 border border-gray-800">
+              <div className="flex justify-between items-center mb-3">
+                <span className="text-sm text-gray-400">Status</span>
+                <span
+                  className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                    selectedLand.status === "available"
+                      ? "bg-green-500/20 text-green-400"
+                      : selectedLand.status === "special"
+                      ? "bg-blue-500/20 text-blue-400"
+                      : "bg-red-500/20 text-red-400"
+                  }`}
+                >
+                  {selectedLand.status === "available"
+                    ? "Available"
+                    : selectedLand.status === "special"
+                    ? "Special"
+                    : "Sold"}
+                </span>
               </div>
-
-              <div className="bg-[#000000] rounded-2xl p-4 mb-6 border border-gray-800">
-                <div className="text-center">
-                  <div className="text-sm text-gray-400 mb-1">Price</div>
-                  <div className="text-3xl font-bold text-[#0A84FF]">
-                    {selectedLand.price} DOGG
-                  </div>
+              <div className="text-center pt-3 border-t border-gray-800">
+                <div className="text-sm text-gray-400 mb-1">Price</div>
+                <div className="text-3xl font-bold text-[#0A84FF]">
+                  {selectedLand.price} DOGG
                 </div>
               </div>
+            </div>
 
-              <div className="space-y-3">
-                <button className="w-full bg-[#0A84FF] text-white py-4 rounded-xl font-semibold active:scale-[0.98] transition-transform flex items-center justify-center gap-2">
-                  <IoWalletSharp size={20} />
-                  Buy Now
-                </button>
+            <div className="space-y-3">
+              <button
+                disabled={selectedLand.status === "sold"}
+                className={`w-full py-4 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all ${
+                  selectedLand.status === "sold"
+                    ? "bg-[#2c2c2e] text-gray-500 cursor-not-allowed border border-gray-800"
+                    : "bg-[#0A84FF] text-white active:scale-[0.98]"
+                }`}
+              >
+                <IoWalletSharp size={20} />
+                {selectedLand.status === "sold" ? "Sold Out" : "Buy Now"}
+              </button>
+
+              {selectedLand.status !== "sold" && (
                 <button className="w-full bg-[#2c2c2e] text-white py-4 rounded-xl font-semibold active:scale-[0.98] transition-transform flex items-center justify-center gap-2 border border-gray-800">
                   <IoPeopleSharp size={20} />
                   Shared Buy
                 </button>
-                <button
-                  onClick={() => setShowBuyModal(false)}
-                  className="w-full py-4 text-gray-400 font-medium flex items-center justify-center gap-2"
-                >
-                  <IoClose size={20} />
-                  Cancel
-                </button>
+              )}
+            </div>
+          </>
+        )}
+
+        {modalType === "nft" && selectedNFT && (
+          <>
+            <div
+              className={`w-24 h-24 bg-gradient-to-br ${selectedNFT.gradient} rounded-2xl flex items-center justify-center mx-auto mb-6`}
+            >
+              <selectedNFT.icon
+                size={48}
+                className="text-white"
+              />
+            </div>
+
+            <div className="text-center mb-6">
+              <h3 className="text-2xl font-bold text-white mb-1">
+                {selectedNFT.name}
+              </h3>
+              <div className="text-sm text-gray-400">NFT #{selectedNFT.id}</div>
+            </div>
+
+            <div className="bg-[#000000] rounded-2xl p-4 mb-6 border border-gray-800">
+              <div className="space-y-3">
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-400">Rarity</span>
+                  <span className="text-white font-semibold">
+                    {selectedNFT.id === 1
+                      ? "Common"
+                      : selectedNFT.id === 2
+                      ? "Rare"
+                      : selectedNFT.id === 3
+                      ? "Epic"
+                      : "Legendary"}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-400">Type</span>
+                  <span className="text-white font-semibold">Collectible</span>
+                </div>
+              </div>
+              <div className="text-center pt-4 mt-4 border-t border-gray-800">
+                <div className="text-sm text-gray-400 mb-1">Price</div>
+                <div className="text-3xl font-bold text-[#0A84FF]">
+                  {selectedNFT.price} DOGG
+                </div>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+
+            <div className="space-y-3">
+              <button className="w-full bg-[#0A84FF] text-white py-4 rounded-xl font-semibold active:scale-[0.98] transition-transform flex items-center justify-center gap-2">
+                <IoWalletSharp size={20} />
+                Buy NFT
+              </button>
+              <button className="w-full bg-[#2c2c2e] text-white py-4 rounded-xl font-semibold active:scale-[0.98] transition-transform flex items-center justify-center gap-2 border border-gray-800">
+                <IoPeopleSharp size={20} />
+                Shared Buy
+              </button>
+            </div>
+          </>
+        )}
+      </Modal>
 
       {/* NFT Section */}
       <div className="px-4 mt-6">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-lg font-semibold text-white">Featured NFTs</h3>
-          <button className="text-[#0A84FF] text-sm font-medium">
-            View All
-          </button>
-        </div>
+        <SectionHeader
+          title="Featured NFTs"
+          actionText="View All"
+        />
 
         <div className="grid grid-cols-2 gap-3">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div
-              key={i}
-              className="bg-[#1c1c1e] border border-gray-800 rounded-2xl overflow-hidden"
-            >
-              <div className="aspect-square bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
-                {i === 0 ? (
-                  <IoStarSharp
+          {nfts.map((nft) => {
+            const Icon = nft.icon;
+            return (
+              <button
+                key={nft.id}
+                onClick={() => handleNFTClick(nft)}
+                className="bg-[#1c1c1e] border border-gray-800 rounded-2xl overflow-hidden active:scale-[0.98] transition-transform text-left"
+              >
+                <div
+                  className={`aspect-square bg-gradient-to-br ${nft.gradient} flex items-center justify-center`}
+                >
+                  <Icon
                     size={64}
                     className="text-white"
                   />
-                ) : i === 1 ? (
-                  <IoFlameSharp
-                    size={64}
-                    className="text-white"
-                  />
-                ) : i === 2 ? (
-                  <IoGiftSharp
-                    size={64}
-                    className="text-white"
-                  />
-                ) : (
-                  <IoTrendingUpSharp
-                    size={64}
-                    className="text-white"
-                  />
-                )}
-              </div>
-              <div className="p-3">
-                <div className="font-semibold text-white text-sm mb-1">
-                  NFT #{i + 1}
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-[#0A84FF] font-bold text-sm">
-                    {100 + i * 50} DOGG
-                  </span>
-                  <button className="text-[#0A84FF] text-xs font-medium">
-                    Buy
-                  </button>
+                <div className="p-3">
+                  <div className="font-semibold text-white text-sm mb-1">
+                    {nft.name}
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[#0A84FF] font-bold text-sm">
+                      {nft.price} DOGG
+                    </span>
+                    <span className="text-[#0A84FF] text-xs font-medium bg-[#0A84FF]/10 px-3 py-1 rounded-full">
+                      View
+                    </span>
+                  </div>
                 </div>
-              </div>
-            </div>
-          ))}
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>
