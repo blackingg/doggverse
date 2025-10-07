@@ -1,11 +1,4 @@
 import React, { useState } from "react";
-import {
-  IoWalletSharp,
-  IoHomeSharp,
-  IoMapSharp,
-  IoGridSharp,
-  IoGlobeSharp,
-} from "react-icons/io5";
 import { BalanceCard } from "../components/BalanceCard";
 import { SectionHeader } from "../components/SectionHeader";
 import { MissionCard } from "../components/MissionCard";
@@ -14,8 +7,7 @@ import { useNotifications } from "../context/NotificationContext";
 import { Header } from "../components/Header";
 
 export const EarnPage: React.FC = () => {
-  const { addNotification } =
-    useNotifications();
+  const { addNotification } = useNotifications();
 
   const [balance, setBalance] = useState(500);
   const [missions, setMissions] = useState([
@@ -58,12 +50,11 @@ export const EarnPage: React.FC = () => {
         title="Earn"
         balance={1200}
       />
-      {/* Balance Card */}
+
       <div className="p-4">
         <BalanceCard balance={balance} />
       </div>
 
-      {/* Missions */}
       <div className="px-4 mb-6">
         <SectionHeader title="Missions" />
         <div className="space-y-2">
@@ -77,49 +68,20 @@ export const EarnPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Referral */}
       <div className="px-4">
         <ReferralCard
           friendsCount={12}
           earnedAmount={350}
           bonusPercent={7}
-          onShare={() =>
+          onShare={() => {
             addNotification({
               type: "success",
-              title: "Referral Link Shared!",
-              description: "You’ve successfully shared your invite link.",
-            })
-          }
+              title: "Referral Link Copied!",
+              description:
+                "Share with friends to earn 7% bonus on their purchases",
+            });
+          }}
         />
-      </div>
-
-      {/* Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-[#1c1c1e] border-t border-gray-800 z-50">
-        <div className="flex justify-around items-center h-16 max-w-7xl mx-auto">
-          {[
-            { id: "home", label: "Home", icon: IoHomeSharp },
-            { id: "lands", label: "Lands", icon: IoMapSharp },
-            { id: "earn", label: "Earn", icon: IoWalletSharp },
-            { id: "gallery", label: "Gallery", icon: IoGridSharp },
-            { id: "doggverse", label: "3D", icon: IoGlobeSharp },
-          ].map((tab) => {
-            const Icon = tab.icon;
-            return (
-              <button
-                key={tab.id}
-                className={`flex flex-col items-center justify-center flex-1 h-full transition-colors ${
-                  tab.id === "earn" ? "text-[#0A84FF]" : "text-gray-500"
-                }`}
-              >
-                <Icon
-                  size={24}
-                  className="mb-1"
-                />
-                <span className="text-xs font-medium">{tab.label}</span>
-              </button>
-            );
-          })}
-        </div>
       </div>
     </div>
   );
