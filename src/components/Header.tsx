@@ -10,7 +10,7 @@ export const Header: React.FC<{ title: string; balance?: number }> = ({
   const { notifications, removeNotification } = useNotifications();
   return (
     <div className="sticky top-0 bg-[#000000] border-b border-gray-800 z-40">
-      <div className="absolute top-0 left-0 right-0 z-50">
+      <div className="absolute top-8 left-0 right-0 z-50">
         <NotificationStack
           notifications={notifications}
           onRemove={removeNotification}

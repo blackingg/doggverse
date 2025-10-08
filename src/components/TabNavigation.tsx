@@ -3,8 +3,8 @@ import {
   IoHomeSharp,
   IoMapSharp,
   IoWalletSharp,
-  IoGridSharp,
   IoGlobeSharp,
+  IoSpeedometerSharp,
 } from "react-icons/io5";
 
 export const TabNavigation: React.FC<{
@@ -13,10 +13,10 @@ export const TabNavigation: React.FC<{
 }> = ({ activeTab, onTabChange }) => {
   const tabs = [
     { id: "home", label: "Home", icon: IoHomeSharp },
-    { id: "lands", label: "Lands", icon: IoMapSharp },
     { id: "earn", label: "Earn", icon: IoWalletSharp },
-    { id: "gallery", label: "Gallery", icon: IoGridSharp },
     { id: "doggverse", label: "3D", icon: IoGlobeSharp },
+    { id: "lands", label: "Lands", icon: IoMapSharp },
+    { id: "dashboard", label: "Manage", icon: IoSpeedometerSharp },
   ];
 
   return (

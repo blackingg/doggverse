@@ -48,7 +48,7 @@ export const EarnPage: React.FC = () => {
     <div className="min-h-screen bg-[#000000] pb-20">
       <Header
         title="Earn"
-        balance={1200}
+        balance={500}
       />
 
       <div className="p-4">
