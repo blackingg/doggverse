@@ -5,6 +5,7 @@ import { LandsPage } from "./pages/LandsPage";
 import { EarnPage } from "./pages/EarnPage";
 import { ComingSoon } from "./pages/ComingSoon";
 import { NotificationProvider } from "./context/NotificationContext";
+import { DashboardPage } from "./pages/DashboardPage";
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState("home");
@@ -13,17 +14,8 @@ const App: React.FC = () => {
     switch (activeTab) {
       case "home":
         return <HomePage onNavigate={setActiveTab} />;
-      case "lands":
-        return <LandsPage />;
       case "earn":
         return <EarnPage />;
-      case "gallery":
-        return (
-          <ComingSoon
-            title="Gallery"
-            description="Full NFT gallery experience coming soon"
-          />
-        );
       case "doggverse":
         return (
           <ComingSoon
@@ -31,6 +23,10 @@ const App: React.FC = () => {
             description="Immersive 3D metaverse experience coming soon"
           />
         );
+      case "lands":
+        return <LandsPage />;
+      case "dashboard":
+        return <DashboardPage />;
       default:
         return <HomePage onNavigate={setActiveTab} />;
     }

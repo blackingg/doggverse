@@ -143,7 +143,7 @@ export const HomePage: React.FC<{ onNavigate: (tab: string) => void }> = ({
     <div className="pb-20 bg-[#000000] min-h-screen">
       <Header
         title="DoggEarth"
-        balance={1200}
+        balance={500}
       />
 
       {/* Hero Section */}
