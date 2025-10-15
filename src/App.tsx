@@ -6,6 +6,7 @@ import { EarnPage } from "./pages/EarnPage";
 import { ComingSoon } from "./pages/ComingSoon";
 import { NotificationProvider } from "./context/NotificationContext";
 import { DashboardPage } from "./pages/DashboardPage";
+import { TelegramProvider } from "./context/TelegramContext";
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState("home");
@@ -33,15 +34,18 @@ const App: React.FC = () => {
   };
 
   return (
-    <NotificationProvider>
-      <div className="min-h-screen bg-[#000000]">
-        {renderPage()}
-        <TabNavigation
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-        />
-      </div>
-    </NotificationProvider>
+    <TelegramProvider>
+      {" "}
+      <NotificationProvider>
+        <div className="min-h-screen bg-[#000000]">
+          {renderPage()}
+          <TabNavigation
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+          />
+        </div>
+      </NotificationProvider>
+    </TelegramProvider>
   );
 };
 
