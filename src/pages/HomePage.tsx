@@ -140,7 +140,10 @@ export const HomePage: React.FC<{ onNavigate: (tab: string) => void }> = ({
   }, [slides.length]);
 
   return (
-    <div className="pb-20 bg-[#000000] min-h-screen">
+    <div
+      className="pb-20 min-h-screen bg-[#000000]"
+      style={{ paddingBottom: "calc(80px + var(--tg-safe-area-inset-bottom))" }}
+    >
       <Header
         title="DoggEarth"
         balance={500}

@@ -9,7 +9,10 @@ export const Header: React.FC<{ title: string; balance?: number }> = ({
 }) => {
   const { notifications, removeNotification } = useNotifications();
   return (
-    <div className="sticky top-0 bg-[#000000] border-b border-gray-800 z-40">
+    <div
+      className="sticky top-0 bg-[#000000] border-b border-gray-800 z-40"
+      style={{ paddingTop: "max(var(--tg-safe-area-inset-top), 12px)" }}
+    >
       <div className="absolute top-8 left-0 right-0 z-50">
         <NotificationStack
           notifications={notifications}

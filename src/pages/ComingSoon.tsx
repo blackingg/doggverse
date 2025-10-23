@@ -5,7 +5,10 @@ export const ComingSoon: React.FC<{ title: string; description: string }> = ({
   title,
   description,
 }) => (
-  <div className="pb-20 min-h-screen flex items-center justify-center bg-[#000000]">
+  <div
+    className="pb-20 min-h-screen bg-[#000000]"
+    style={{ paddingBottom: "calc(80px + var(--tg-safe-area-inset-bottom))" }}
+  >
     <div className="text-center px-4">
       <div className="w-24 h-24 bg-[#0A84FF]/20 rounded-3xl flex items-center justify-center mx-auto mb-6">
         <IoRocketSharp

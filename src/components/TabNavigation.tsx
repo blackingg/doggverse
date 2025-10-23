@@ -20,7 +20,14 @@ export const TabNavigation: React.FC<{
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-[#1c1c1e] border-t border-gray-800 z-40">
+    <div
+      className="fixed bottom-0 left-0 right-0 bg-[#1c1c1e] border-t border-gray-800 z-40"
+      style={{
+        paddingBottom: "max(var(--tg-safe-area-inset-bottom), 8px)",
+        paddingLeft: "var(--tg-safe-area-inset-left)",
+        paddingRight: "var(--tg-safe-area-inset-right)",
+      }}
+    >
       <div className="flex justify-around items-center h-16 max-w-7xl mx-auto">
         {tabs.map((tab) => {
           const Icon = tab.icon;

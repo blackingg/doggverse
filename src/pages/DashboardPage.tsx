@@ -287,7 +287,10 @@ export const DashboardPage: React.FC = () => {
   };
 
   return (
-    <div className="pb-20 bg-[#000000] min-h-screen">
+    <div
+      className="pb-20 min-h-screen bg-[#000000]"
+      style={{ paddingBottom: "calc(80px + var(--tg-safe-area-inset-bottom))" }}
+    >
       <Header
         title="Dashboard"
         balance={balance}
