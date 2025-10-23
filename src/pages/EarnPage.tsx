@@ -45,7 +45,10 @@ export const EarnPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#000000] pb-20">
+    <div
+      className="pb-20 min-h-screen bg-[#000000]"
+      style={{ paddingBottom: "calc(80px + var(--tg-safe-area-inset-bottom))" }}
+    >
       <Header
         title="Earn"
         balance={500}
