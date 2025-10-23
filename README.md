@@ -1,73 +1,71 @@
-# React + TypeScript + Vite
+# DoggEarth 🐕🌍
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A dog-powered metaverse mini app built for Telegram on the TON blockchain. Buy virtual land, breed AI dogs, and participate in a gamified Web3 economy.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### 🏠 Virtual Land Marketplace
+- Interactive 10x10 grid of purchasable land plots
+- Multiple land collections (TONVERSE, Notverse, Xverse)
+- Real-time availability tracking
+- Shared buying options for group purchases
 
-## React Compiler
+### 💰 In-App Economy
+- $DOGG token integration
+- TON wallet support
+- Send/receive cryptocurrency
+- Transaction history tracking
+- NFT trading and management
 
-The React Compiler is currently not compatible with SWC. See [this issue](https://github.com/vitejs/vite-plugin-react/issues/428) for tracking the progress.
+### 🎮 Gamification
+- Daily login rewards
+- Mission system with claimable rewards
+- Referral program with 7% bonus earnings
+- Character upgrades and power-ups
 
-## Expanding the ESLint configuration
+### 🛒 Item Shop
+- Power-ups (Speed Boost, etc.)
+- Cosmetic items (Fire Aura, Sparkle Trail)
+- Resources for building
+- Special legendary items
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### 📊 Portfolio Dashboard
+- Balance tracking ($DOGG & TON)
+- NFT gallery with rarity tiers
+- Portfolio statistics
+- Quick action shortcuts
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### 🔔 Smart Notifications
+- Stacked notification system
+- Auto-dismiss functionality
+- Multiple notification types (missions, partnerships, info)
+- Non-intrusive design
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## Tech Stack
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+- **React + TypeScript** - Component architecture
+- **Tailwind CSS** - Responsive design
+- **Three.js** - 3D land visualization (alternative view)
+- **Telegram WebApp API** - Native integration
+- **TON Blockchain** - Wallet connectivity
+
+## Mobile-First Design
+
+Built specifically for Telegram mini apps with:
+- Safe area handling for notched devices
+- Gesture navigation support
+- Optimized touch interactions
+- Bottom navigation bar
+
+## Getting Started
+
+```bash
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Open in Telegram WebApp or browser at `localhost:5173`
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+---
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+*A Web3 metaverse experience combining virtual real estate, NFT collectibles, and social gaming.*
