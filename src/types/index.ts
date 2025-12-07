@@ -1,4 +1,3 @@
-// Types
 export interface Land {
   id: number;
   price: number;
@@ -25,7 +24,10 @@ export interface LandData {
   id: string;
   gridX: number;
   gridY: number;
+  island: string;
   price: number;
   type: string;
   owned: boolean;
+  originalColor: number;
+  originalEmissive: number;
 }

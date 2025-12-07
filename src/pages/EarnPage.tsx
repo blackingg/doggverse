@@ -5,11 +5,11 @@ import { MissionCard } from "../components/MissionCard";
 import { ReferralCard } from "../components/ReferralCard";
 import { useNotifications } from "../context/NotificationContext";
 import { Header } from "../components/Header";
+import { useAppData } from "../context/AppDataContext";
 
 export const EarnPage: React.FC = () => {
   const { addNotification } = useNotifications();
-
-  const [balance, setBalance] = useState(500);
+  const { wallet, updateBalance } = useAppData();
   const [missions, setMissions] = useState([
     {
       id: 1,
@@ -40,7 +40,12 @@ export const EarnPage: React.FC = () => {
     );
     const mission = missions.find((m) => m.id === id);
     if (mission) {
-      setBalance(balance + mission.reward);
+      updateBalance(mission.reward);
+      addNotification({
+        type: "success",
+        title: "Reward Claimed!",
+        description: `You earned ${mission.reward} DOGG`,
+      });
     }
   };
 
@@ -51,11 +56,11 @@ export const EarnPage: React.FC = () => {
     >
       <Header
         title="Earn"
-        balance={500}
+        balance={wallet.balance}
       />
 
       <div className="p-4">
-        <BalanceCard balance={balance} />
+        <BalanceCard balance={wallet.balance} />
       </div>
 
       <div className="px-4 mb-6">

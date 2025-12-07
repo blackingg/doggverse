@@ -21,6 +21,7 @@ import { Modal } from "../components/Modal";
 import { Header } from "../components/Header";
 import { SectionHeader } from "../components/SectionHeader";
 import { StatCard } from "../components/StatCard";
+import { useAppData } from "../context/AppDataContext";
 
 interface ShopItem {
   id: number;
@@ -64,7 +65,8 @@ export const DashboardPage: React.FC = () => {
   const [sendAmount, setSendAmount] = useState("");
   const [recipientAddress, setRecipientAddress] = useState("");
 
-  const balance = 500;
+  const { wallet } = useAppData();
+
   const tonBalance = 5.43;
 
   const shopItems: ShopItem[] = [
@@ -293,10 +295,9 @@ export const DashboardPage: React.FC = () => {
     >
       <Header
         title="Dashboard"
-        balance={balance}
+        balance={wallet.balance}
       />
 
-      {/* Section Tabs */}
       <div className="sticky top-14 bg-[#000000] border-b border-gray-800 z-30">
         <div className="px-4 py-3">
           <div className="flex gap-2">
@@ -325,14 +326,12 @@ export const DashboardPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Wallet Section */}
       {activeSection === "wallet" && (
         <div className="p-4 space-y-6">
-          {/* Balance Cards */}
           <div className="grid grid-cols-2 gap-3">
             <div className="bg-gradient-to-br from-[#0A84FF] to-[#0051D5] rounded-2xl p-5 text-white">
               <div className="text-sm opacity-90 mb-1">DOGG Balance</div>
-              <div className="text-3xl font-bold">{balance}</div>
+              <div className="text-3xl font-bold">{wallet.balance}</div>
               <div className="text-xs opacity-75 mt-1">$DOGG</div>
             </div>
             <div className="bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl p-5 text-white">
@@ -342,7 +341,6 @@ export const DashboardPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Quick Actions */}
           <div className="grid grid-cols-4 gap-3">
             {[
               {
@@ -390,26 +388,24 @@ export const DashboardPage: React.FC = () => {
             })}
           </div>
 
-          {/* Stats Grid */}
           <div>
             <SectionHeader title="Portfolio Stats" />
             <div className="grid grid-cols-3 gap-3">
               <StatCard
                 label="Total Value"
-                value="$1,845"
+                value={`$${Math.round(wallet.balance * 0.5)}`}
               />
               <StatCard
                 label="NFTs Owned"
-                value="12"
+                value={`${wallet.assets.nfts.length}`}
               />
               <StatCard
                 label="Lands"
-                value="5"
+                value={`${wallet.assets.lands.length}`}
               />
             </div>
           </div>
 
-          {/* Recent Transactions */}
           <div>
             <SectionHeader
               title="Recent Transactions"
@@ -459,7 +455,6 @@ export const DashboardPage: React.FC = () => {
         </div>
       )}
 
-      {/* Shop Section */}
       {activeSection === "shop" && (
         <div className="p-4">
           <SectionHeader
@@ -516,7 +511,6 @@ export const DashboardPage: React.FC = () => {
         </div>
       )}
 
-      {/* Gallery Section */}
       {activeSection === "gallery" && (
         <div className="p-4">
           <SectionHeader
@@ -568,7 +562,6 @@ export const DashboardPage: React.FC = () => {
         </div>
       )}
 
-      {/* Modals */}
       <Modal
         isOpen={showModal}
         onClose={closeModal}
@@ -618,7 +611,7 @@ export const DashboardPage: React.FC = () => {
                   className="w-full bg-[#000000] border border-gray-800 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:border-[#0A84FF] focus:outline-none"
                 />
                 <div className="text-xs text-gray-400 mt-2">
-                  Available: {balance} DOGG
+                  Available: {wallet.balance} DOGG
                 </div>
               </div>
             </div>
