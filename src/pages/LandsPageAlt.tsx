@@ -13,6 +13,7 @@ import {
 import { Header } from "../components/Header";
 import * as THREE from "three";
 import type { LandData } from "../types";
+import { useAppData } from "../context/AppDataContext";
 
 export const LandsPageAlt: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -26,10 +27,11 @@ export const LandsPageAlt: React.FC = () => {
     currentFilter: string;
   } | null>(null);
 
+  const { wallet, islands, lands, soldLands, purchaseLand } = useAppData();
+
   useEffect(() => {
     if (!canvasRef.current || !containerRef.current) return;
 
-    const gridSize = 10;
     const cellSize = 114;
     let landParcels: THREE.Mesh[] = [];
     let selectedParcel: THREE.Mesh | null = null;
@@ -77,71 +79,71 @@ export const LandsPageAlt: React.FC = () => {
     rimLight.position.set(-800, 400, -600);
     scene.add(rimLight);
 
-    // Create grid
+    // Create multiple islands using centralized data
     const gridGroup = new THREE.Group();
-    const colors = [0x3b82f6, 0x10b981, 0xf59e0b, 0x8b5cf6, 0x06b6d4, 0x84cc16];
+    const islandSize = 5;
 
-    for (let i = 0; i < gridSize; i++) {
-      for (let j = 0; j < gridSize; j++) {
-        const geometry = new THREE.BoxGeometry(cellSize - 6, 25, cellSize - 6);
-        const material = new THREE.MeshLambertMaterial({
-          color: colors[Math.floor(Math.random() * colors.length)],
-          transparent: true,
-          opacity: 0.9,
-          emissive: new THREE.Color(0x000000),
-        });
+    // Build cubes from centralized lands data
+    lands.forEach((land) => {
+      const island = islands.find(i => i.name === land.island);
+      if (!island) return;
 
-        const cube = new THREE.Mesh(geometry, material);
-        cube.position.set(
-          (i - gridSize / 2 + 0.5) * cellSize,
-          12.5,
-          (j - gridSize / 2 + 0.5) * cellSize
-        );
-        cube.castShadow = true;
-        cube.receiveShadow = true;
+      const geometry = new THREE.BoxGeometry(cellSize - 6, 25, cellSize - 6);
+      
+      const material = new THREE.MeshLambertMaterial({
+        color: land.originalColor,
+        transparent: true,
+        opacity: 0.9,
+        emissive: new THREE.Color(0x000000),
+      });
 
-        cube.userData = {
-          gridX: i,
-          gridY: j,
-          id: String.fromCharCode(65 + i) + (j + 1),
-          price: Math.floor(Math.random() * 2000) + 500,
-          type: ["Premium", "Standard", "Luxury"][
-            Math.floor(Math.random() * 3)
-          ],
-          owned: Math.random() < 0.2,
-        };
+      const cube = new THREE.Mesh(geometry, material);
+      cube.position.set(
+        (land.gridX - islandSize / 2 + 0.5) * cellSize + island.offsetX,
+        12.5,
+        (land.gridY - islandSize / 2 + 0.5) * cellSize + island.offsetZ
+      );
+      cube.castShadow = true;
+      cube.receiveShadow = true;
 
-        const colorIndex = (i + j) % colors.length;
-        cube.material.color.setHex(colors[colorIndex]);
-        cube.material.emissive.setHex(0x111111);
+      // Set userData to the land data
+      cube.userData = land;
 
-        if (cube.userData.owned) {
-          // Make sold lands dark and muted with subtle red glow
-          cube.material.color.setHex(0x2c2c2e);
-          cube.material.emissive.setHex(0x4a1f1f);
-          cube.material.opacity = 0.7;
-        }
+      cube.material.color.setHex(land.originalColor);
+      cube.material.emissive.setHex(land.originalEmissive);
 
-        (cube as any).originalY = cube.position.y;
-        (cube as any).hovered = false;
-        landParcels.push(cube);
-        gridGroup.add(cube);
+      if (soldLands.has(land.id)) {
+        // Make sold lands dark and muted with subtle red glow
+        cube.material.color.setHex(0x2c2c2e);
+        cube.material.emissive.setHex(0x4a1f1f);
+        cube.material.opacity = 0.7;
       }
-    }
 
-    // Platform
-    const platformSize = gridSize * cellSize + 300;
-    const platformHeight = 60;
-    const platformGeometry = new THREE.BoxGeometry(
-      platformSize,
-      platformHeight,
-      platformSize
-    );
-    const platformMaterial = new THREE.MeshLambertMaterial({ color: 0x1c1c1e });
-    const platform = new THREE.Mesh(platformGeometry, platformMaterial);
-    platform.position.y = -platformHeight / 2;
-    platform.receiveShadow = true;
-    gridGroup.add(platform);
+      (cube as any).originalY = cube.position.y;
+      (cube as any).hovered = false;
+      landParcels.push(cube);
+      gridGroup.add(cube);
+    });
+
+    // Create platforms for each island
+    islands.forEach((island) => {
+      const platformSize = islandSize * cellSize + 100;
+      const platformHeight = 60;
+      const platformGeometry = new THREE.BoxGeometry(
+        platformSize,
+        platformHeight,
+        platformSize
+      );
+      const platformMaterial = new THREE.MeshLambertMaterial({ 
+        color: island.platformColor,
+        transparent: true,
+        opacity: 0.8,
+      });
+      const platform = new THREE.Mesh(platformGeometry, platformMaterial);
+      platform.position.set(island.offsetX, -platformHeight / 2, island.offsetZ);
+      platform.receiveShadow = true;
+      gridGroup.add(platform);
+    });
 
     scene.add(gridGroup);
 
@@ -256,6 +258,125 @@ export const LandsPageAlt: React.FC = () => {
         .add(direction.multiplyScalar(newDistance));
     };
 
+    // Touch event handlers for mobile support
+    let lastTouchDistance = 0;
+    let touchStartTime = 0;
+    let touchStartPos = { x: 0, y: 0 };
+    let touchMoved = false;
+    
+    const onTouchStart = (event: TouchEvent) => {
+      event.preventDefault();
+      const rect = canvasRef.current!.getBoundingClientRect();
+      touchStartTime = Date.now();
+      touchMoved = false;
+
+      if (event.touches.length === 1) {
+        // Single touch - prepare for rotation
+        const touch = event.touches[0];
+        controls.lastMouse.x = touch.clientX - rect.left;
+        controls.lastMouse.y = touch.clientY - rect.top;
+        touchStartPos.x = controls.lastMouse.x;
+        touchStartPos.y = controls.lastMouse.y;
+        controls.isRotating = true;
+      } else if (event.touches.length === 2) {
+        // Two fingers - prepare for pinch zoom
+        const touch1 = event.touches[0];
+        const touch2 = event.touches[1];
+        const dx = touch2.clientX - touch1.clientX;
+        const dy = touch2.clientY - touch1.clientY;
+        lastTouchDistance = Math.sqrt(dx * dx + dy * dy);
+        controls.isRotating = false;
+        touchMoved = true; // Pinch is always movement
+      }
+    };
+
+    const onTouchMove = (event: TouchEvent) => {
+      event.preventDefault();
+      const rect = canvasRef.current!.getBoundingClientRect();
+
+      if (event.touches.length === 1 && controls.isRotating) {
+        // Single touch - rotate
+        const touch = event.touches[0];
+        const touchX = touch.clientX - rect.left;
+        const touchY = touch.clientY - rect.top;
+
+        const deltaX = touchX - controls.lastMouse.x;
+        const deltaY = touchY - controls.lastMouse.y;
+
+        // Mark as moved if movement is significant (> 5px)
+        if (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5) {
+          touchMoved = true;
+        }
+
+        if (touchMoved) {
+          const spherical = new THREE.Spherical();
+          const offset = new THREE.Vector3();
+          offset.copy(camera.position).sub(controls.target);
+          spherical.setFromVector3(offset);
+          spherical.theta -= deltaX * controls.rotationSpeed;
+          spherical.phi -= deltaY * controls.rotationSpeed;
+          spherical.phi = Math.max(0.1, Math.min(Math.PI - 0.1, spherical.phi));
+          offset.setFromSpherical(spherical);
+          camera.position.copy(controls.target).add(offset);
+          camera.lookAt(controls.target);
+        }
+
+        controls.lastMouse.x = touchX;
+        controls.lastMouse.y = touchY;
+      } else if (event.touches.length === 2) {
+        // Two fingers - pinch zoom
+        const touch1 = event.touches[0];
+        const touch2 = event.touches[1];
+        const dx = touch2.clientX - touch1.clientX;
+        const dy = touch2.clientY - touch1.clientY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (lastTouchDistance > 0) {
+          const delta = (lastTouchDistance - distance) * 2;
+          const currentDistance = camera.position.distanceTo(controls.target);
+          const newDistance = Math.max(200, Math.min(2000, currentDistance + delta));
+          const direction = new THREE.Vector3();
+          direction.subVectors(camera.position, controls.target).normalize();
+          camera.position
+            .copy(controls.target)
+            .add(direction.multiplyScalar(newDistance));
+        }
+
+        lastTouchDistance = distance;
+      }
+    };
+
+    const onTouchEnd = (event: TouchEvent) => {
+      event.preventDefault();
+      const touchDuration = Date.now() - touchStartTime;
+
+      // If it was a quick tap (< 300ms) with no significant movement, treat as click
+      if (touchDuration < 300 && event.changedTouches.length === 1 && !touchMoved) {
+        const touch = event.changedTouches[0];
+        const rect = canvasRef.current!.getBoundingClientRect();
+        
+        mouse.x = ((touch.clientX - rect.left) / canvasRef.current!.clientWidth) * 2 - 1;
+        mouse.y = -((touch.clientY - rect.top) / canvasRef.current!.clientHeight) * 2 + 1;
+
+        raycaster.setFromCamera(mouse, camera);
+        const intersects = raycaster.intersectObjects(
+          landParcels.filter((p) => p.visible)
+        );
+
+        if (intersects.length > 0) {
+          selectedParcel = intersects[0].object as THREE.Mesh;
+          setSelectedLand(selectedParcel.userData as LandData);
+          setShowBuyModal(true);
+        }
+      }
+
+      controls.isRotating = false;
+      controls.isPanning = false;
+      lastTouchDistance = 0;
+      touchMoved = false;
+    };
+
+    // Add mouse event listeners
     canvasRef.current.addEventListener("mousedown", onMouseDown);
     canvasRef.current.addEventListener("mousemove", onMouseMove);
     canvasRef.current.addEventListener("mouseup", onMouseUp);
@@ -264,6 +385,11 @@ export const LandsPageAlt: React.FC = () => {
     canvasRef.current.addEventListener("contextmenu", (e) =>
       e.preventDefault()
     );
+
+    // Add touch event listeners
+    canvasRef.current.addEventListener("touchstart", onTouchStart, { passive: false });
+    canvasRef.current.addEventListener("touchmove", onTouchMove, { passive: false });
+    canvasRef.current.addEventListener("touchend", onTouchEnd, { passive: false });
 
     // Animation
     const animate = () => {
@@ -302,12 +428,32 @@ export const LandsPageAlt: React.FC = () => {
       canvasRef.current?.removeEventListener("mouseup", onMouseUp);
       canvasRef.current?.removeEventListener("click", onClick);
       canvasRef.current?.removeEventListener("wheel", onWheel);
+      canvasRef.current?.removeEventListener("touchstart", onTouchStart);
+      canvasRef.current?.removeEventListener("touchmove", onTouchMove);
+      canvasRef.current?.removeEventListener("touchend", onTouchEnd);
     };
-  }, []);
+  }, [lands, islands, soldLands]);
 
   useEffect(() => {
     if (!sceneRef.current) return;
     const { landParcels } = sceneRef.current;
+
+    // Helper function to blend two colors
+    const blendColors = (color1: number, color2: number, ratio: number) => {
+      const r1 = (color1 >> 16) & 0xff;
+      const g1 = (color1 >> 8) & 0xff;
+      const b1 = color1 & 0xff;
+      
+      const r2 = (color2 >> 16) & 0xff;
+      const g2 = (color2 >> 8) & 0xff;
+      const b2 = color2 & 0xff;
+      
+      const r = Math.round(r1 * (1 - ratio) + r2 * ratio);
+      const g = Math.round(g1 * (1 - ratio) + g2 * ratio);
+      const b = Math.round(b1 * (1 - ratio) + b2 * ratio);
+      
+      return (r << 16) | (g << 8) | b;
+    };
 
     landParcels.forEach((parcel: THREE.Mesh) => {
       const material = parcel.material as THREE.MeshLambertMaterial;
@@ -327,18 +473,37 @@ export const LandsPageAlt: React.FC = () => {
       }
 
       if (shouldHighlight) {
-        // Bright highlight for filtered items
+        // Blend original color with filter effect
         if (filter === "owned") {
+          // Red highlight for sold items
           material.color.setHex(0xff4444);
           material.emissive.setHex(0xaa0000);
+          material.opacity = 1.0;
         } else if (filter === "premium") {
-          material.color.setHex(0xffd700);
+          // Golden highlight blended with original color
+          const blendedColor = blendColors(parcel.userData.originalColor, 0xffd700, 0.5);
+          material.color.setHex(blendedColor);
           material.emissive.setHex(0xaa8800);
-        } else {
-          material.color.setHex(0x00ff88);
-          material.emissive.setHex(0x00aa44);
+          material.opacity = 1.0;
+        } else if (filter === "available") {
+          // Brighten the original color for available filter
+          const island = parcel.userData.island;
+          let boostColor = 0xffffff;
+          
+          // Different boost based on island
+          if (island === "TONVERSE") {
+            boostColor = 0x60a5fa;
+          } else if (island === "Notverse") {
+            boostColor = 0x4ade80; 
+          } else if (island === "Xverse") {
+            boostColor = 0xc084fc;
+          }
+          
+          const blendedColor = blendColors(parcel.userData.originalColor, boostColor, 0.4);
+          material.color.setHex(blendedColor);
+          material.emissive.setHex(parcel.userData.originalEmissive);
+          material.opacity = 1.0;
         }
-        material.opacity = 1.0;
       } else {
         // Restore original colors
         if (parcel.userData.owned) {
@@ -346,13 +511,8 @@ export const LandsPageAlt: React.FC = () => {
           material.emissive.setHex(0x4a1f1f);
           material.opacity = 0.7;
         } else {
-          const colors = [
-            0x3b82f6, 0x10b981, 0xf59e0b, 0x8b5cf6, 0x06b6d4, 0x84cc16,
-          ];
-          const colorIndex =
-            (parcel.userData.gridX + parcel.userData.gridY) % colors.length;
-          material.color.setHex(colors[colorIndex]);
-          material.emissive.setHex(0x111111);
+          material.color.setHex(parcel.userData.originalColor);
+          material.emissive.setHex(parcel.userData.originalEmissive);
           material.opacity = 0.9;
         }
       }
@@ -363,10 +523,9 @@ export const LandsPageAlt: React.FC = () => {
     <div className="pb-20 bg-[#000000] min-h-screen">
       <Header
         title="Land Marketplace"
-        balance={500}
+        balance={wallet.balance}
       />
 
-      {/* 3D Canvas Container */}
       <div
         ref={containerRef}
         className="relative w-full h-[70vh] border-b border-gray-800"
@@ -376,13 +535,12 @@ export const LandsPageAlt: React.FC = () => {
           className="w-full h-full"
         />
 
-        <div className="absolute top-4 left-4 bg-[#1c1c1e]/90 backdrop-blur-sm border border-gray-800 rounded-xl px-3 py-2 max-w-[200px]">
+        <div className="absolute top-4 left-4 bg-[#1c1c1e]/90 backdrop-blur-sm border border-gray-800 rounded-xl px-3 py-2 max-w-[220px]">
           <p className="text-xs text-gray-400">
-            <span className="text-[#0A84FF] font-semibold">Drag</span> to rotate • <span className="text-[#0A84FF] font-semibold">Scroll</span> to zoom • <span className="text-[#0A84FF] font-semibold">Click</span> to select
+            <span className="text-[#0A84FF] font-semibold">Swipe</span> to rotate • <span className="text-[#0A84FF] font-semibold">Pinch</span> to zoom • <span className="text-[#0A84FF] font-semibold">Tap</span> to select
           </p>
         </div>
 
-        {/* Filter Dropdown */}
         <div className="absolute top-4 right-4 z-10">
           <button
             onClick={() => setShowFilterDropdown(!showFilterDropdown)}
@@ -426,7 +584,6 @@ export const LandsPageAlt: React.FC = () => {
           )}
         </div>
 
-        {/* Legend */}
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-[#1c1c1e]/95 backdrop-blur-md border border-gray-800 rounded-xl px-4 py-3 shadow-lg">
           <div className="flex items-center gap-6 text-xs">
             <div className="flex items-center gap-2">
@@ -445,7 +602,6 @@ export const LandsPageAlt: React.FC = () => {
         </div>
       </div>
 
-      {/* Buy Modal */}
       {showBuyModal && selectedLand && (
         <div 
           className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4"
@@ -474,6 +630,19 @@ export const LandsPageAlt: React.FC = () => {
               </div>
 
               <div className="bg-[#000000] rounded-2xl p-5 mb-6 border border-gray-800 space-y-4">
+                <div className="flex justify-between text-sm items-center">
+                  <span className="text-gray-400">Island</span>
+                  <span className={`px-3 py-1.5 rounded-full text-xs font-bold ${
+                    selectedLand.island === "TONVERSE" 
+                      ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
+                      : selectedLand.island === "Notverse"
+                      ? "bg-green-500/20 text-green-400 border border-green-500/30"
+                      : "bg-purple-500/20 text-purple-400 border border-purple-500/30"
+                  }`}>
+                    {selectedLand.island}
+                  </span>
+                </div>
+                <div className="h-px bg-gray-800"></div>
                 <div className="flex justify-between text-sm items-center">
                   <span className="text-gray-400">Plot ID</span>
                   <span className="text-white font-bold text-base">
@@ -526,6 +695,14 @@ export const LandsPageAlt: React.FC = () => {
               <div className="space-y-3">
                 <button
                   disabled={selectedLand.owned}
+                  onClick={async () => {
+                    if (!selectedLand.owned) {
+                      const success = await purchaseLand(selectedLand.id, selectedLand.price);
+                      if (success) {
+                        setShowBuyModal(false);
+                      }
+                    }
+                  }}
                   className={`w-full py-4 rounded-xl font-bold text-base flex items-center justify-center gap-2 transition-all ${
                     selectedLand.owned
                       ? "bg-[#2c2c2e] text-gray-600 cursor-not-allowed border border-gray-800"
@@ -556,7 +733,6 @@ export const LandsPageAlt: React.FC = () => {
         </div>
       )}
 
-      {/* Marketplace Stats */}
       <div className="px-4 py-6 space-y-4">
         <h2 className="text-xl font-bold text-white mb-4">Marketplace Overview</h2>
         
@@ -566,7 +742,8 @@ export const LandsPageAlt: React.FC = () => {
               <IoGlobeSharp size={18} className="text-[#0A84FF]" />
               <span className="text-xs text-gray-400 font-medium">Total Lands</span>
             </div>
-            <div className="text-2xl font-black text-white">100</div>
+            <div className="text-2xl font-black text-white">75</div>
+            <div className="text-xs text-gray-500 mt-0.5">Across 3 islands</div>
           </div>
 
           <div className="bg-gradient-to-br from-[#1c1c1e] to-[#2c2c2e] border border-gray-800 rounded-xl p-4">
@@ -575,7 +752,7 @@ export const LandsPageAlt: React.FC = () => {
               <span className="text-xs text-gray-400 font-medium">Available</span>
             </div>
             <div className="text-2xl font-black text-green-400">
-              {sceneRef.current?.landParcels.filter(p => !p.userData.owned).length || 80}
+              {sceneRef.current?.landParcels.filter(p => !p.userData.owned).length || 60}
             </div>
           </div>
 
@@ -585,7 +762,7 @@ export const LandsPageAlt: React.FC = () => {
               <span className="text-xs text-gray-400 font-medium">Sold</span>
             </div>
             <div className="text-2xl font-black text-red-400">
-              {sceneRef.current?.landParcels.filter(p => p.userData.owned).length || 20}
+              {sceneRef.current?.landParcels.filter(p => p.userData.owned).length || 15}
             </div>
           </div>
 
@@ -599,7 +776,33 @@ export const LandsPageAlt: React.FC = () => {
           </div>
         </div>
 
-        {/* Info Banner */}
+        <div className="bg-[#1c1c1e] border border-gray-800 rounded-xl p-4">
+          <h3 className="text-white font-semibold text-sm mb-3">Islands</h3>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded bg-blue-500"></div>
+                <span className="text-sm text-gray-300">TONVERSE</span>
+              </div>
+              <span className="text-xs text-gray-500">25 plots</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded bg-green-500"></div>
+                <span className="text-sm text-gray-300">Notverse</span>
+              </div>
+              <span className="text-xs text-gray-500">25 plots</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded bg-purple-500"></div>
+                <span className="text-sm text-gray-300">Xverse</span>
+              </div>
+              <span className="text-xs text-gray-500">25 plots</span>
+            </div>
+          </div>
+        </div>
+
         <div className="bg-gradient-to-r from-[#0A84FF]/20 via-[#0A84FF]/10 to-transparent border border-[#0A84FF]/30 rounded-xl p-4">
           <div className="flex items-start gap-3">
             <div className="w-10 h-10 bg-[#0A84FF]/20 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -608,15 +811,16 @@ export const LandsPageAlt: React.FC = () => {
             <div>
               <h3 className="text-white font-semibold text-sm mb-1">Own Your Piece of Doggverse</h3>
               <p className="text-xs text-gray-400 leading-relaxed">
-                Secure your land in the metaverse. Each plot is unique and can be customized. Premium lands offer exclusive benefits and higher visibility.
+                Choose from three unique metaverse islands: TONVERSE (blue), Notverse (green), and Xverse (purple). Each plot is unique and can be customized. Premium lands offer exclusive benefits.
               </p>
             </div>
           </div>
         </div>
 
-        {/* Quick Actions */}
         <div className="grid grid-cols-2 gap-3 mt-4">
-          <button className="bg-[#1c1c1e] border border-gray-800 rounded-xl p-4 active:scale-95 transition-all hover:border-gray-700">
+          <button 
+            onClick={() => setFilter("available")}
+            className="bg-[#1c1c1e] border border-gray-800 rounded-xl p-4 active:scale-95 transition-all hover:border-gray-700">
             <div className="w-10 h-10 bg-[#0A84FF]/20 rounded-lg flex items-center justify-center mx-auto mb-2">
               <IoSearchSharp size={20} className="text-[#0A84FF]" />
             </div>
@@ -624,7 +828,9 @@ export const LandsPageAlt: React.FC = () => {
             <div className="text-xs text-gray-500 mt-1">Browse available plots</div>
           </button>
 
-          <button className="bg-[#1c1c1e] border border-gray-800 rounded-xl p-4 active:scale-95 transition-all hover:border-gray-700">
+          <button 
+            onClick={() => setFilter("premium")}
+            className="bg-[#1c1c1e] border border-gray-800 rounded-xl p-4 active:scale-95 transition-all hover:border-gray-700">
             <div className="w-10 h-10 bg-yellow-500/20 rounded-lg flex items-center justify-center mx-auto mb-2">
               <IoStarSharp size={20} className="text-yellow-500" />
             </div>

@@ -17,6 +17,7 @@ import { ActionCard } from "../components/ActionCard";
 import { StatCard } from "../components/StatCard";
 import { SectionHeader } from "../components/SectionHeader";
 import { Modal } from "../components/Modal";
+import { useAppData } from "../context/AppDataContext";
 
 export const HomePage: React.FC<{ onNavigate: (tab: string) => void }> = ({
   onNavigate,
@@ -24,6 +25,8 @@ export const HomePage: React.FC<{ onNavigate: (tab: string) => void }> = ({
   const [currentSlide, setCurrentSlide] = useState(0);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [upgradeLevel, setUpgradeLevel] = useState(0);
+
+  const { wallet, stats, islands } = useAppData();
 
   const slides = [
     {
@@ -56,10 +59,10 @@ export const HomePage: React.FC<{ onNavigate: (tab: string) => void }> = ({
     },
   ];
 
-  const stats = [
+  const statsData = [
     { label: "Users", value: "100K+" },
-    { label: "Lands", value: "50K+" },
-    { label: "Events", value: "10+" },
+    { label: "Lands", value: `${stats.totalLands}` },
+    { label: "Islands", value: `${islands.length}` },
   ];
 
   const quickActions = [
@@ -86,29 +89,13 @@ export const HomePage: React.FC<{ onNavigate: (tab: string) => void }> = ({
     },
   ];
 
-  const collections = [
-    {
-      name: "TONVERSE",
-      icon: IoGlobeSharp,
-      color: "bg-blue-500/20",
-      textColor: "text-blue-400",
-      plots: 100,
-    },
-    {
-      name: "Notverse",
-      icon: IoStarSharp,
-      color: "bg-purple-500/20",
-      textColor: "text-purple-400",
-      plots: 150,
-    },
-    {
-      name: "Xverse",
-      icon: IoFlameSharp,
-      color: "bg-green-500/20",
-      textColor: "text-green-400",
-      plots: 200,
-    },
-  ];
+  const collections = islands.map((island) => ({
+    name: island.name,
+    icon: island.name === "TONVERSE" ? IoGlobeSharp : island.name === "Notverse" ? IoStarSharp : IoFlameSharp,
+    color: island.name === "TONVERSE" ? "bg-blue-500/20" : island.name === "Notverse" ? "bg-green-500/20" : "bg-purple-500/20",
+    textColor: island.name === "TONVERSE" ? "text-blue-400" : island.name === "Notverse" ? "text-green-400" : "text-purple-400",
+    plots: island.totalPlots,
+  }));
 
   const earnInviteCards = [
     {
@@ -146,10 +133,9 @@ export const HomePage: React.FC<{ onNavigate: (tab: string) => void }> = ({
     >
       <Header
         title="DoggEarth"
-        balance={500}
+        balance={wallet.balance}
       />
 
-      {/* Hero Section */}
       <div className="p-4">
         <div className="relative rounded-2xl p-6 text-white overflow-hidden">
           <img
@@ -182,10 +168,9 @@ export const HomePage: React.FC<{ onNavigate: (tab: string) => void }> = ({
         </div>
       </div>
 
-      {/* Stats Grid */}
       <div className="px-4 mb-6">
         <div className="grid grid-cols-3 gap-3">
-          {stats.map((stat) => (
+          {statsData.map((stat) => (
             <StatCard
               key={stat.label}
               label={stat.label}
@@ -195,7 +180,6 @@ export const HomePage: React.FC<{ onNavigate: (tab: string) => void }> = ({
         </div>
       </div>
 
-      {/* Feature Slider */}
       <div className="px-4 mb-6">
         <div className="relative h-56 rounded-2xl overflow-hidden">
           {slides.map((slide, index) => {
@@ -244,7 +228,6 @@ export const HomePage: React.FC<{ onNavigate: (tab: string) => void }> = ({
         </div>
       </div>
 
-      {/* Quick Actions */}
       <div className="px-4 mb-6">
         <SectionHeader title="Quick Actions" />
         <div className="grid grid-cols-3 gap-3">
@@ -261,7 +244,6 @@ export const HomePage: React.FC<{ onNavigate: (tab: string) => void }> = ({
         </div>
       </div>
 
-      {/* Collections */}
       <div className="px-4 mb-6">
         <SectionHeader
           title="Collections"
@@ -303,7 +285,6 @@ export const HomePage: React.FC<{ onNavigate: (tab: string) => void }> = ({
         </div>
       </div>
 
-      {/* Earn & Invite */}
       <div className="px-4">
         <div className="grid grid-cols-2 gap-3">
           {earnInviteCards.map((card, index) => (
@@ -320,7 +301,6 @@ export const HomePage: React.FC<{ onNavigate: (tab: string) => void }> = ({
         </div>
       </div>
 
-      {/* Upgrade Modal */}
       <Modal
         isOpen={showUpgradeModal}
         onClose={() => setShowUpgradeModal(false)}
