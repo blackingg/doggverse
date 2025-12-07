@@ -7,6 +7,7 @@ import { ComingSoon } from "./pages/ComingSoon";
 import { NotificationProvider } from "./context/NotificationContext";
 import { DashboardPage } from "./pages/DashboardPage";
 import { TelegramProvider } from "./context/TelegramContext";
+import { LandsPageAlt } from "./pages/LandsPageAlt";
 
 declare global {
   interface Window {
@@ -96,12 +97,7 @@ const App: React.FC = () => {
       case "earn":
         return <EarnPage />;
       case "doggverse":
-        return (
-          <ComingSoon
-            title="Doggverse 3D"
-            description="Immersive 3D metaverse experience coming soon"
-          />
-        );
+        return <LandsPageAlt />;
       case "lands":
         return <LandsPage />;
       case "dashboard":

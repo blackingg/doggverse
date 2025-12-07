@@ -113,10 +113,13 @@ export const LandsPageAlt: React.FC = () => {
 
         const colorIndex = (i + j) % colors.length;
         cube.material.color.setHex(colors[colorIndex]);
+        cube.material.emissive.setHex(0x111111);
 
         if (cube.userData.owned) {
-          cube.material.color.setHex(0xef4444);
-          cube.material.emissive.setHex(0x991b1b);
+          // Make sold lands dark and muted with subtle red glow
+          cube.material.color.setHex(0x2c2c2e);
+          cube.material.emissive.setHex(0x4a1f1f);
+          cube.material.opacity = 0.7;
         }
 
         (cube as any).originalY = cube.position.y;
@@ -324,12 +327,24 @@ export const LandsPageAlt: React.FC = () => {
       }
 
       if (shouldHighlight) {
-        material.color.setHex(0x00ff00);
-        material.emissive.setHex(0x00aa00);
+        // Bright highlight for filtered items
+        if (filter === "owned") {
+          material.color.setHex(0xff4444);
+          material.emissive.setHex(0xaa0000);
+        } else if (filter === "premium") {
+          material.color.setHex(0xffd700);
+          material.emissive.setHex(0xaa8800);
+        } else {
+          material.color.setHex(0x00ff88);
+          material.emissive.setHex(0x00aa44);
+        }
+        material.opacity = 1.0;
       } else {
+        // Restore original colors
         if (parcel.userData.owned) {
-          material.color.setHex(0xef4444);
-          material.emissive.setHex(0x991b1b);
+          material.color.setHex(0x2c2c2e);
+          material.emissive.setHex(0x4a1f1f);
+          material.opacity = 0.7;
         } else {
           const colors = [
             0x3b82f6, 0x10b981, 0xf59e0b, 0x8b5cf6, 0x06b6d4, 0x84cc16,
@@ -337,7 +352,8 @@ export const LandsPageAlt: React.FC = () => {
           const colorIndex =
             (parcel.userData.gridX + parcel.userData.gridY) % colors.length;
           material.color.setHex(colors[colorIndex]);
-          material.emissive.setHex(0x000000);
+          material.emissive.setHex(0x111111);
+          material.opacity = 0.9;
         }
       }
     });
@@ -353,24 +369,30 @@ export const LandsPageAlt: React.FC = () => {
       {/* 3D Canvas Container */}
       <div
         ref={containerRef}
-        className="relative w-full h-[70vh]"
+        className="relative w-full h-[70vh] border-b border-gray-800"
       >
         <canvas
           ref={canvasRef}
           className="w-full h-full"
         />
 
+        <div className="absolute top-4 left-4 bg-[#1c1c1e]/90 backdrop-blur-sm border border-gray-800 rounded-xl px-3 py-2 max-w-[200px]">
+          <p className="text-xs text-gray-400">
+            <span className="text-[#0A84FF] font-semibold">Drag</span> to rotate • <span className="text-[#0A84FF] font-semibold">Scroll</span> to zoom • <span className="text-[#0A84FF] font-semibold">Click</span> to select
+          </p>
+        </div>
+
         {/* Filter Dropdown */}
         <div className="absolute top-4 right-4 z-10">
           <button
             onClick={() => setShowFilterDropdown(!showFilterDropdown)}
-            className="w-12 h-12 bg-[#1c1c1e] border border-gray-800 rounded-xl flex items-center justify-center text-white hover:bg-[#2c2c2e] transition-colors"
+            className="w-12 h-12 bg-[#1c1c1e]/90 backdrop-blur-sm border border-gray-800 rounded-xl flex items-center justify-center text-white hover:bg-[#2c2c2e] transition-all active:scale-95 shadow-lg"
           >
-            <IoSearchSharp size={20} />
+            <IoSearchSharp size={20} className={showFilterDropdown ? "text-[#0A84FF]" : "text-white"} />
           </button>
 
           {showFilterDropdown && (
-            <div className="absolute top-14 right-0 bg-[#1c1c1e] border border-gray-800 rounded-xl overflow-hidden min-w-[160px]">
+            <div className="absolute top-14 right-0 bg-[#1c1c1e]/95 backdrop-blur-md border border-gray-800 rounded-xl overflow-hidden min-w-[180px] shadow-2xl animate-[slideDown_0.2s_ease-out]">
               {[
                 { id: "all", label: "All Lands", Icon: IoGlobeSharp },
                 {
@@ -378,7 +400,7 @@ export const LandsPageAlt: React.FC = () => {
                   label: "Available",
                   Icon: IoCheckmarkCircle,
                 },
-                { id: "owned", label: "Owned", Icon: IoLockClosedSharp },
+                { id: "owned", label: "Sold", Icon: IoLockClosedSharp },
                 { id: "premium", label: "Premium", Icon: IoStarSharp },
               ].map((f) => {
                 const Icon = f.Icon;
@@ -389,106 +411,228 @@ export const LandsPageAlt: React.FC = () => {
                       setFilter(f.id);
                       setShowFilterDropdown(false);
                     }}
-                    className={`w-full px-4 py-3 text-left flex items-center gap-2 text-sm ${
+                    className={`w-full px-4 py-3 text-left flex items-center gap-3 text-sm ${
                       filter === f.id
                         ? "bg-[#0A84FF] text-white"
-                        : "text-gray-400 hover:bg-[#2c2c2e]"
-                    } transition-colors`}
+                        : "text-gray-300 hover:bg-[#2c2c2e]"
+                    } transition-all active:scale-95`}
                   >
                     <Icon size={18} />
-                    <span>{f.label}</span>
+                    <span className="font-medium">{f.label}</span>
                   </button>
                 );
               })}
             </div>
           )}
         </div>
+
+        {/* Legend */}
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-[#1c1c1e]/95 backdrop-blur-md border border-gray-800 rounded-xl px-4 py-3 shadow-lg">
+          <div className="flex items-center gap-6 text-xs">
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded bg-gradient-to-br from-blue-500 to-purple-500 shadow-lg shadow-blue-500/30"></div>
+              <span className="text-gray-300 font-medium">Available</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded bg-[#2c2c2e] shadow-lg shadow-red-900/40 border border-red-900/50"></div>
+              <span className="text-gray-300 font-medium">Sold</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded bg-gradient-to-br from-yellow-500 to-orange-500 shadow-lg shadow-yellow-500/30"></div>
+              <span className="text-gray-300 font-medium">Premium</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Buy Modal */}
       {showBuyModal && selectedLand && (
-        <div className="fixed inset-0 bg-black/70 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
-          <div className="bg-[#1c1c1e] rounded-t-3xl sm:rounded-3xl w-full sm:max-w-md animate-[slideUp_0.3s_ease-out] border-t border-gray-800 max-h-[90vh] overflow-y-auto">
+        <div 
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4"
+          onClick={() => setShowBuyModal(false)}
+        >
+          <div 
+            className="bg-[#1c1c1e] rounded-t-3xl sm:rounded-3xl w-full sm:max-w-md animate-[slideUp_0.3s_ease-out] border-t sm:border border-gray-800 max-h-[90vh] overflow-y-auto shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-2xl font-bold text-white">Land Purchase</h3>
+                <h3 className="text-2xl font-bold text-white">Land Details</h3>
                 <button
                   onClick={() => setShowBuyModal(false)}
-                  className="w-10 h-10 bg-[#2c2c2e] rounded-full flex items-center justify-center text-white hover:bg-[#3c3c3e] transition-colors"
+                  className="w-10 h-10 bg-[#2c2c2e] rounded-full flex items-center justify-center text-gray-400 hover:text-white hover:bg-[#3c3c3e] transition-all active:scale-95"
                 >
                   <IoClose size={24} />
                 </button>
               </div>
 
-              <div className="w-16 h-16 bg-[#0A84FF]/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <div className="w-20 h-20 bg-gradient-to-br from-[#0A84FF]/20 to-[#0051D5]/20 rounded-2xl flex items-center justify-center mx-auto mb-6 border border-[#0A84FF]/30">
                 <IoMapSharp
-                  size={32}
+                  size={40}
                   className="text-[#0A84FF]"
                 />
               </div>
 
-              <div className="bg-[#000000] rounded-2xl p-4 mb-6 border border-gray-800 space-y-3">
-                <div className="flex justify-between text-sm">
+              <div className="bg-[#000000] rounded-2xl p-5 mb-6 border border-gray-800 space-y-4">
+                <div className="flex justify-between text-sm items-center">
                   <span className="text-gray-400">Plot ID</span>
-                  <span className="text-white font-semibold">
+                  <span className="text-white font-bold text-base">
                     {selectedLand.id}
                   </span>
                 </div>
-                <div className="flex justify-between text-sm">
+                <div className="h-px bg-gray-800"></div>
+                <div className="flex justify-between text-sm items-center">
                   <span className="text-gray-400">Size</span>
-                  <span className="text-white font-semibold">114 × 114px</span>
+                  <span className="text-white font-semibold">114 × 114</span>
                 </div>
-                <div className="flex justify-between text-sm">
+                <div className="h-px bg-gray-800"></div>
+                <div className="flex justify-between text-sm items-center">
                   <span className="text-gray-400">Type</span>
-                  <span className="text-white font-semibold">
-                    {selectedLand.type}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    {selectedLand.type === "Premium" && (
+                      <IoStarSharp size={14} className="text-yellow-500" />
+                    )}
+                    <span className={`font-semibold ${selectedLand.type === "Premium" ? "text-yellow-500" : "text-white"}`}>
+                      {selectedLand.type}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex justify-between text-sm">
+                <div className="h-px bg-gray-800"></div>
+                <div className="flex justify-between text-sm items-center">
                   <span className="text-gray-400">Status</span>
                   <span
-                    className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                    className={`px-3 py-1.5 rounded-full text-xs font-bold ${
                       selectedLand.owned
-                        ? "bg-red-500/20 text-red-400"
-                        : "bg-green-500/20 text-green-400"
+                        ? "bg-red-500/20 text-red-400 border border-red-500/30"
+                        : "bg-green-500/20 text-green-400 border border-green-500/30"
                     }`}
                   >
-                    {selectedLand.owned ? "Owned" : "Available"}
+                    {selectedLand.owned ? "Sold Out" : "Available"}
                   </span>
                 </div>
               </div>
 
-              <div className="bg-gradient-to-br from-[#0A84FF]/20 to-[#0051D5]/20 rounded-2xl p-6 mb-6 border border-[#0A84FF]/30 text-center">
-                <div className="text-sm text-gray-400 mb-1">Total Price</div>
-                <div className="text-3xl font-bold text-[#0A84FF]">
-                  {selectedLand.price} DOGG
+              <div className="bg-gradient-to-br from-[#0A84FF]/30 via-[#0A84FF]/20 to-[#0051D5]/30 rounded-2xl p-6 mb-6 border border-[#0A84FF]/40 text-center relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-transparent to-black/20"></div>
+                <div className="relative">
+                  <div className="text-sm text-gray-300 mb-2 font-medium">Total Price</div>
+                  <div className="text-4xl font-black text-[#0A84FF] drop-shadow-[0_0_10px_rgba(10,132,255,0.5)]">
+                    {selectedLand.price}
+                  </div>
+                  <div className="text-sm text-gray-400 mt-1 font-medium">DOGG</div>
                 </div>
               </div>
 
               <div className="space-y-3">
                 <button
                   disabled={selectedLand.owned}
-                  className={`w-full py-4 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all ${
+                  className={`w-full py-4 rounded-xl font-bold text-base flex items-center justify-center gap-2 transition-all ${
                     selectedLand.owned
-                      ? "bg-[#2c2c2e] text-gray-500 cursor-not-allowed"
-                      : "bg-[#0A84FF] text-white hover:bg-[#0051D5] active:scale-[0.98]"
+                      ? "bg-[#2c2c2e] text-gray-600 cursor-not-allowed border border-gray-800"
+                      : "bg-gradient-to-r from-[#0A84FF] to-[#0051D5] text-white hover:shadow-lg hover:shadow-[#0A84FF]/30 active:scale-[0.98]"
                   }`}
                 >
-                  <IoWalletSharp size={20} />
-                  {selectedLand.owned ? "Already Owned" : "Buy Now"}
+                  <IoWalletSharp size={22} />
+                  {selectedLand.owned ? "Already Sold" : "Buy Now"}
                 </button>
 
                 {!selectedLand.owned && (
-                  <button className="w-full bg-[#2c2c2e] text-white py-4 rounded-xl font-semibold active:scale-[0.98] transition-transform flex items-center justify-center gap-2 border border-gray-800">
+                  <button className="w-full bg-[#2c2c2e] text-white py-4 rounded-xl font-semibold active:scale-[0.98] transition-all flex items-center justify-center gap-2 border border-gray-700 hover:bg-[#3c3c3e]">
                     <IoPeopleSharp size={20} />
                     Shared Buy
                   </button>
                 )}
               </div>
+
+              {selectedLand.owned && (
+                <div className="mt-4 text-center">
+                  <p className="text-xs text-gray-500">
+                    This land has been sold to another user
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>
       )}
+
+      {/* Marketplace Stats */}
+      <div className="px-4 py-6 space-y-4">
+        <h2 className="text-xl font-bold text-white mb-4">Marketplace Overview</h2>
+        
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-gradient-to-br from-[#1c1c1e] to-[#2c2c2e] border border-gray-800 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <IoGlobeSharp size={18} className="text-[#0A84FF]" />
+              <span className="text-xs text-gray-400 font-medium">Total Lands</span>
+            </div>
+            <div className="text-2xl font-black text-white">100</div>
+          </div>
+
+          <div className="bg-gradient-to-br from-[#1c1c1e] to-[#2c2c2e] border border-gray-800 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <IoCheckmarkCircle size={18} className="text-green-500" />
+              <span className="text-xs text-gray-400 font-medium">Available</span>
+            </div>
+            <div className="text-2xl font-black text-green-400">
+              {sceneRef.current?.landParcels.filter(p => !p.userData.owned).length || 80}
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-br from-[#1c1c1e] to-[#2c2c2e] border border-gray-800 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <IoLockClosedSharp size={18} className="text-red-500" />
+              <span className="text-xs text-gray-400 font-medium">Sold</span>
+            </div>
+            <div className="text-2xl font-black text-red-400">
+              {sceneRef.current?.landParcels.filter(p => p.userData.owned).length || 20}
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-br from-[#1c1c1e] to-[#2c2c2e] border border-gray-800 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <IoStarSharp size={18} className="text-yellow-500" />
+              <span className="text-xs text-gray-400 font-medium">Avg. Price</span>
+            </div>
+            <div className="text-2xl font-black text-[#0A84FF]">1.2K</div>
+            <div className="text-xs text-gray-500 mt-0.5">DOGG</div>
+          </div>
+        </div>
+
+        {/* Info Banner */}
+        <div className="bg-gradient-to-r from-[#0A84FF]/20 via-[#0A84FF]/10 to-transparent border border-[#0A84FF]/30 rounded-xl p-4">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 bg-[#0A84FF]/20 rounded-lg flex items-center justify-center flex-shrink-0">
+              <IoMapSharp size={20} className="text-[#0A84FF]" />
+            </div>
+            <div>
+              <h3 className="text-white font-semibold text-sm mb-1">Own Your Piece of Doggverse</h3>
+              <p className="text-xs text-gray-400 leading-relaxed">
+                Secure your land in the metaverse. Each plot is unique and can be customized. Premium lands offer exclusive benefits and higher visibility.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="grid grid-cols-2 gap-3 mt-4">
+          <button className="bg-[#1c1c1e] border border-gray-800 rounded-xl p-4 active:scale-95 transition-all hover:border-gray-700">
+            <div className="w-10 h-10 bg-[#0A84FF]/20 rounded-lg flex items-center justify-center mx-auto mb-2">
+              <IoSearchSharp size={20} className="text-[#0A84FF]" />
+            </div>
+            <div className="text-sm font-semibold text-white">Explore Lands</div>
+            <div className="text-xs text-gray-500 mt-1">Browse available plots</div>
+          </button>
+
+          <button className="bg-[#1c1c1e] border border-gray-800 rounded-xl p-4 active:scale-95 transition-all hover:border-gray-700">
+            <div className="w-10 h-10 bg-yellow-500/20 rounded-lg flex items-center justify-center mx-auto mb-2">
+              <IoStarSharp size={20} className="text-yellow-500" />
+            </div>
+            <div className="text-sm font-semibold text-white">Premium Only</div>
+            <div className="text-xs text-gray-500 mt-1">View exclusive lands</div>
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
